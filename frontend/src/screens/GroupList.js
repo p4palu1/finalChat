@@ -28,7 +28,7 @@ const GroupList = ({history}) => {
         <h1>Click on a group to join the chat</h1>
         {
             groups.map((group) => (
-                <Card>
+                <Card className="mt-3" >
                     <Row>
                         <Col md={6} className="text-center">
                             <h3>{group.name}</h3>
