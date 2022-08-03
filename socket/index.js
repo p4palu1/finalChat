@@ -10,10 +10,14 @@ const server = http.createServer(app)
 
 let users = []
 
-const addUser = (socketId) => {
-    if (!users.includes(socketId)){
-        users.push(socketId)
+const addUser = (newUser) => {
+    if (users.findIndex((user) => user.socketId === newUser.socketId) === -1){
+        users.push(newUser)
     }
+}
+
+const removeUser = (socketId) => {
+    users = users.filter(user => user.socketId === socketId)
 }
 
 const io = new Server(server, {
@@ -25,12 +29,33 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
     console.log(socket.id)
-    addUser(socket.id)
     socket.emit("userList", users)
+    socket.emit("getGroup")
     
     socket.on("sendmessage", (data) => {
-        socket.to(data.reciever).emit('recieve', data.message)
+        try{
+            users.forEach((user) => {
+               if(user.groupId === data.group){
+                socket.to(user.socketId).emit("recieve", data)          
+                console.log(data.content);
+                console.log(user.socketId);
+               }
+            })
+        } catch(err){
+            console.log(err.message);
+        }
     })
+
+    socket.on("groupId", (groupid) => {
+        addUser({
+            socketId: socket.id,
+            groupId: groupid
+        })
+    })
+
+   // socket.on("disconnect", () => {
+    //    removeUser(socket)
+   // });
 })
 
 server.listen(3001, () => {
